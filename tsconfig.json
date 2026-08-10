@@ -4,6 +4,8 @@
     "target": "es2022",
     "types": [],
     "moduleResolution": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
