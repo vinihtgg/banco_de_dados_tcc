@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json())
 
 // ================= ROTA PARA INSERIR PRODUTO (E CRIAR A TABELA SE NÃO EXISTIR) =================
-app.post('/produtos', async (req, res) => {
+app.post('/produtos-create', async (req, res) => {
   const { nome, preco } = req.body;
 
   // Validação simples
@@ -45,6 +45,7 @@ app.post('/produtos', async (req, res) => {
 // ================= ROTA PARA VISUALIZAR OS PRODUTOS =================
 app.get('/produtos', async (req, res) => {
   try {
+    res.json([{"nome": "josefina"}]);
     // Verifica se a tabela existe antes de ler para evitar erro de tabela fantasma
         const [rows] = await pool.query('SELECT * FROM `produto` ORDER BY `CODIGO DO PRODUTO` DESC');
         res.json(rows);
