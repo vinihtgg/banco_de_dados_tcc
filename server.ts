@@ -46,15 +46,8 @@ app.post('/produtos', async (req, res) => {
 app.get('/produtos', async (req, res) => {
   try {
     // Verifica se a tabela existe antes de ler para evitar erro de tabela fantasma
-    const [tabelas]: any = await pool.query("SHOW TABLES LIKE 'produto'");
-    
-    if (tabelas.length === 0) {
-      // Se a tabela não existe, significa que nenhum produto foi cadastrado ainda
-      return res.json([]);
-    }
-
-    const [rows] = await pool.query('SELECT * FROM `produto` ORDER BY `CODIGO DO PRODUTO` DESC');
-    res.json(rows);
+        const [rows] = await pool.query('SELECT * FROM `produto` ORDER BY `CODIGO DO PRODUTO` DESC');
+        res.json(rows);
   } catch (error: any) {
     console.error('Erro ao buscar produtos:', error);
     res.status(500).json({ error: 'Erro ao buscar os produtos.' });
