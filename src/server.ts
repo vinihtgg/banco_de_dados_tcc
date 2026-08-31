@@ -52,7 +52,7 @@ app.get('/produtos/busca', async (req, res) => {
 
   try {
     const termo = `%${q.trim()}%`;
-    const queryBusca = 'SELECT * FROM `produtos-vini` WHERE nome LIKE ? ORDER BY id DESC';
+    const queryBusca = 'SELECT * FROM `produto` WHERE `NOME DO PRODUTO` LIKE ? ORDER BY `CODIGO DO PRODUTO` DESC';
     const [rows] = await pool.query(queryBusca, [termo]);
 
     res.json(rows);
