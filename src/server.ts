@@ -42,13 +42,10 @@ app.post('/usuarios', async (req, res) => {
     if (usuarioExistente.length > 0) {
       return res.status(409).json({ error: 'Este e-mail já está cadastrado.' });
     }
-
-    // 4. Criptografa a senha com salt de 10 rounds
-    const senhaHash = await bcrypt.hash(senha, 10);
-
+    
     // 5. Salva o usuário no banco
     const queryInsercao = 'INSERT INTO `criar conta` (NOME, E-MAIL, SENHA, CPF) VALUES (?, ?, ?, ?)';
-    const [result]: any = await pool.query(queryInsercao, [nome, email, senhaHash, cpf]);
+    const [result]: any = await pool.query(queryInsercao, [nome, email, senha, cpf]);
 
     // Retorna 201 Created sem expor a senha
     res.status(201).json({
