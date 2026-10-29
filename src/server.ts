@@ -14,28 +14,28 @@ app.use(express.json())
 
 // ================= ROTA PARA CADASTRAR USUÁRIO =================
 app.post('/usuarios', async (req, res) => {
-  const { nome, email, senha } = req.body;
+  const { nome, email, senha, cpf, telefone } = req.body;
 
   // 1. Validação básica de entrada
-  if (!nome || !email || !senha) {
+  if (!nome || !email || !senha || !cpf) {
     return res.status(400).json({ error: 'Nome, email e senha são obrigatórios.' });
   }
 
   try {
     // 2. Garante que a tabela de usuários existe
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS \`usuarios\` (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nome VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        senha VARCHAR(255) NOT NULL,
-        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      CREATE TABLE IF NOT EXISTS \`criar conta\` (
+        CPF VARCHAR(255) PRIMARY KEY,
+        NOME VARCHAR(255) NOT NULL,
+        E-MAIL VARCHAR(255) NOT NULL UNIQUE,
+        SENHA VARCHAR(255) NOT NULL,
+        DATA_CADASTRO TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     // 3. Verifica se o e-mail já está em uso
     const [usuarioExistente]: any = await pool.query(
-      'SELECT id FROM `usuarios` WHERE email = ?',
+      'SELECT CPF FROM `criar conta` WHERE E-MAIL = ?',
       [email]
     );
 
@@ -47,8 +47,8 @@ app.post('/usuarios', async (req, res) => {
     const senhaHash = await bcrypt.hash(senha, 10);
 
     // 5. Salva o usuário no banco
-    const queryInsercao = 'INSERT INTO `usuarios` (nome, email, senha) VALUES (?, ?, ?)';
-    const [result]: any = await pool.query(queryInsercao, [nome, email, senhaHash]);
+    const queryInsercao = 'INSERT INTO `criar conta` (NOME, E-MAIL, SENHA, CPF) VALUES (?, ?, ?)';
+    const [result]: any = await pool.query(queryInsercao, [nome, email, senhaHash, cpf]);
 
     // Retorna 201 Created sem expor a senha
     res.status(201).json({
