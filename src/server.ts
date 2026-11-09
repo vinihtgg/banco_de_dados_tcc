@@ -2,7 +2,6 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { pool } from './config/database.js';
 import cors from 'cors'; 
-import { RowDataPacket } from 'mysql2';
 
 dotenv.config();
 
@@ -12,112 +11,7 @@ app.use(express.json());
 app.use(cors()); 
 app.use(express.json())
 
-function gerarTokenSimples() {
-  const parte1 = Math.random().toString(36).substring(2);
-  const parte2 = Math.random().toString(36).substring(2);
-  return 'tk_' + parte1 + parte2;
-}
 
-app.post('/pedidos', async (req, res) => {
-  const { token, produtos } = req.body;
-
-  // 1. Validação: confere token e se 'produtos' é uma lista com itens
-  if (!token || !Array.isArray(produtos) || produtos.length === 0) {
-    return res.status(400).json({ error: 'Token e uma lista de produtos são obrigatórios.' });
-  }
-
-  try {
-    // 2. Garante que a tabela de pedidos existe
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS \`pedidos\` (
-        ID INT AUTO_INCREMENT PRIMARY KEY,
-        CPF_CLIENTE VARCHAR(255) NOT NULL,
-        PRODUTO_ID INT NOT NULL,
-        QUANTIDADE INT DEFAULT 1,
-        DATA_PEDIDO TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // 3. Busca o usuário correspondente ao token
-   const [usuarios] = await pool.query<RowDataPacket[]>(
-  'SELECT CPF, NOME FROM `criar conta` WHERE TOKEN = ?',
-  [token]
-);
-
-if (usuarios.length === 0) {
-  return res.status(401).json({ error: 'Sessão inválida ou expirada. Faça login novamente.' });
-}
-
-    // 4. Monta as linhas para inserir todos os itens no banco
-    // Formato de cada linha: [CPF_CLIENTE, PRODUTO_ID, QUANTIDADE]
-    const valoresParaInserir = produtos.map(item => [
-      usuarioLogado.CPF,
-      item.produtoId,
-      item.quantidade || 1
-    ]);
-
-    // 5. Inserção múltipla em lote (INSERT INTO ... VALUES ?)
-    const queryMultipla = 'INSERT INTO `pedidos` (CPF_CLIENTE, PRODUTO_ID, QUANTIDADE) VALUES ?';
-    await pool.query(queryMultipla, [valoresParaInserir]);
-
-    // 6. Retorna o sucesso informando a quantidade de itens salvos
-    return res.status(201).json({
-      mensagem: 'Pedido realizado com sucesso!',
-      cliente: usuarioLogado.NOME,
-      totalItens: produtos.length
-    });
-
-  } catch (error) {
-    console.error('Erro ao salvar lista de pedidos:', error);
-    return res.status(500).json({ error: 'Erro interno ao salvar os pedidos.' });
-  }
-});
-
-app.post('/login', async (req, res) => {
-  const { email, senha } = req.body;
-
-  if (!email || !senha) {
-    return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
-  }
-
-  try {
-    // 1. Busca o usuário
-    const [usuarios] = await pool.query(
-      'SELECT CPF, NOME, `E-MAIL`, SENHA FROM `criar conta` WHERE `E-MAIL` = ?',
-      [email]
-    );
-
-    if (usuarios.length === 0 || usuarios[0].SENHA !== senha) {
-      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
-    }
-
-    const usuario = usuarios[0];
-
-    // 2. Gera o token aleatório
-    const token = 'tk_' + Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
-
-    // 3. Salva o token gerado direto na linha desse usuário no banco
-    await pool.query(
-      'UPDATE `criar conta` SET TOKEN = ? WHERE CPF = ?',
-      [token, usuario.CPF]
-    );
-
-    // 4. Devolve o token e os dados para o usuário
-    return res.status(200).json({
-      mensagem: 'Login realizado com sucesso!',
-      token: token,
-      usuario: {
-        cpf: usuario.CPF,
-        nome: usuario.NOME,
-        email: usuario['E-MAIL']
-      }
-    });
-
-  } catch (error) {
-    console.error('Erro no login:', error);
-    return res.status(500).json({ error: 'Erro no servidor ao tentar logar.' });
-  }
-});
 
 // ================= ROTA PARA CADASTRAR USUÁRIO =================
 app.post('/usuarios', async (req, res) => {
