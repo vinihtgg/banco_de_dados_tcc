@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { pool } from './config/database.js';
 import cors from 'cors'; 
+import { RowDataPacket } from 'mysql2';
 
 dotenv.config();
 
@@ -38,16 +39,14 @@ app.post('/pedidos', async (req, res) => {
     `);
 
     // 3. Busca o usuário correspondente ao token
-    const [usuarios] = await pool.query(
-      'SELECT CPF, NOME FROM `criar conta` WHERE TOKEN = ?',
-      [token]
-    );
+   const [usuarios] = await pool.query<RowDataPacket[]>(
+  'SELECT CPF, NOME FROM `criar conta` WHERE TOKEN = ?',
+  [token]
+);
 
-    if (usuarios.length === 0) {
-      return res.status(401).json({ error: 'Sessão inválida ou expirada. Faça login novamente.' });
-    }
-
-    const usuarioLogado = usuarios[0];
+if (usuarios.length === 0) {
+  return res.status(401).json({ error: 'Sessão inválida ou expirada. Faça login novamente.' });
+}
 
     // 4. Monta as linhas para inserir todos os itens no banco
     // Formato de cada linha: [CPF_CLIENTE, PRODUTO_ID, QUANTIDADE]
